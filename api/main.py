@@ -1,21 +1,5 @@
-python id="5v44rs"
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-<<<<<<< HEAD
-<<<<<<< HEAD
-import uvicorn
-=======
->>>>>>> 4145455a512e55d97abc57f2f7f9dba6f545ab55
-
-from config.config import APP_NAME, API_VERSION
-from api.routes import disease, lab, qa, ocr
-
-<<<<<<< HEAD
-app = FastAPI(
-    title=APP_NAME,
-    description="AI-powered medical assistant — self hosted, no external APIs",
-    version=API_VERSION
-=======
 from pydantic import BaseModel
 from typing import List, Optional
 import json
@@ -27,11 +11,7 @@ from config.config import (
     APP_NAME, API_VERSION,
     DISEASE_MODEL_DIR, LAB_MODEL_DIR, QA_MODEL_DIR,
     CLEANED_SYMPTOM
->>>>>>> 17cb34c8d7f0c9b23bdc516e3ece83d8610b4337
 )
-=======
-app = FastAPI(title=APP_NAME, version=API_VERSION)
->>>>>>> 4145455a512e55d97abc57f2f7f9dba6f545ab55
 
 app = FastAPI(title=APP_NAME, version=API_VERSION)
 
@@ -42,24 +22,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-# attach routes
->>>>>>> 4145455a512e55d97abc57f2f7f9dba6f545ab55
-app.include_router(disease.router)
-app.include_router(lab.router)
-app.include_router(qa.router)
-app.include_router(ocr.router)
-
-@app.get("/")
-def root():
-    return {
-        "app": APP_NAME,
-        "version": API_VERSION,
-        "status": "running"
-    }
-=======
 # ── Load models ──────────────────────────────────────────
 print("Loading models...")
 
@@ -98,12 +60,10 @@ class QARequest(BaseModel):
 @app.get("/")
 def root():
     return {"message": f"Welcome to {APP_NAME}", "version": API_VERSION}
->>>>>>> 17cb34c8d7f0c9b23bdc516e3ece83d8610b4337
 
 @app.get("/health")
 def health():
     return {"status": "healthy"}
-<<<<<<< HEAD
 
 @app.get("/symptoms")
 def get_symptoms():
@@ -147,21 +107,6 @@ def analyze_lab(req: LabRequest):
         status = "normal"
         interpretation = "Within normal range"
     return {
-<<<<<<< HEAD
-        "status": "ok",
-        "version": API_VERSION,
-        "modules": {
-            "disease_predictor": "not loaded",
-            "lab_analyzer":      "not loaded",
-            "qa_engine":         "not loaded",
-            "summarizer":        "not loaded",
-            "ocr_module":        "not loaded"
-        }
-    }
-
-if __name__ == "__main__":
-    uvicorn.run("api.main:app", host=API_HOST, port=API_PORT, reload=True)
-=======
         "test": name,
         "value": req.value,
         "unit": ref["unit"],
@@ -191,6 +136,3 @@ def answer_question(req: QARequest):
 @app.get("/lab/tests")
 def get_lab_tests():
     return {"tests": list(lab_reference.keys()), "count": len(lab_reference)}
->>>>>>> 17cb34c8d7f0c9b23bdc516e3ece83d8610b4337
-=======
->>>>>>> 4145455a512e55d97abc57f2f7f9dba6f545ab55
