@@ -1,18 +1,31 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter
+import pickle
+import pandas as pd
+from pathlib import Path
+from sklearn.metrics.pairwise import cosine_similarity
 
 router = APIRouter()
 
-class QARequest(BaseModel):
-    question: str
+BASE = Path("api/models/qa")
+
+with open(BASE / "vectorizer.pkl", "rb") as f:
+    vectorizer = pickle.load(f)
+
+with open(BASE / "tfidf_matrix.pkl", "rb") as f:
+    tfidf_matrix = pickle.load(f)
+
+qa_df = pd.read_csv(BASE / "qa_database.csv")
+
 
 @router.post("/qa")
-def answer_question(request: QARequest):
-    if not request.question.strip():
-        raise HTTPException(status_code=400, detail="Question cannot be empty")
+def answer_question(req: dict):
+    question = req.get("question", "")
+
+    query_vec = vectorizer.transform([question])
+    scores = cosine_similarity(query_vec, tfidf_matrix).flatten()
+
+    idx = scores.argmax()
+
     return {
-        "result": {"question": request.question},
-        "confidence": 0.0,
-        "explanation": "QA engine not yet connected",
-        "disclaimer": "This is not a substitute for professional medical advice."
+        "answer": qa_df.iloc[idx]["answer"]
     }

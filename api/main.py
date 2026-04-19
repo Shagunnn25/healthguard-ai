@@ -1,11 +1,16 @@
+python id="5v44rs"
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 <<<<<<< HEAD
+<<<<<<< HEAD
 import uvicorn
+=======
+>>>>>>> 4145455a512e55d97abc57f2f7f9dba6f545ab55
 
-from config.config import APP_NAME, API_VERSION, API_HOST, API_PORT
+from config.config import APP_NAME, API_VERSION
 from api.routes import disease, lab, qa, ocr
 
+<<<<<<< HEAD
 app = FastAPI(
     title=APP_NAME,
     description="AI-powered medical assistant — self hosted, no external APIs",
@@ -24,6 +29,9 @@ from config.config import (
     CLEANED_SYMPTOM
 >>>>>>> 17cb34c8d7f0c9b23bdc516e3ece83d8610b4337
 )
+=======
+app = FastAPI(title=APP_NAME, version=API_VERSION)
+>>>>>>> 4145455a512e55d97abc57f2f7f9dba6f545ab55
 
 app = FastAPI(title=APP_NAME, version=API_VERSION)
 
@@ -35,6 +43,10 @@ app.add_middleware(
 )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+# attach routes
+>>>>>>> 4145455a512e55d97abc57f2f7f9dba6f545ab55
 app.include_router(disease.router)
 app.include_router(lab.router)
 app.include_router(qa.router)
@@ -45,14 +57,7 @@ def root():
     return {
         "app": APP_NAME,
         "version": API_VERSION,
-        "status": "running",
-        "endpoints": [
-            "/predict/disease",
-            "/analyze/lab",
-            "/qa",
-            "/ocr",
-            "/health"
-        ]
+        "status": "running"
     }
 =======
 # ── Load models ──────────────────────────────────────────
@@ -98,6 +103,7 @@ def root():
 @app.get("/health")
 def health():
     return {"status": "healthy"}
+<<<<<<< HEAD
 
 @app.get("/symptoms")
 def get_symptoms():
@@ -186,3 +192,5 @@ def answer_question(req: QARequest):
 def get_lab_tests():
     return {"tests": list(lab_reference.keys()), "count": len(lab_reference)}
 >>>>>>> 17cb34c8d7f0c9b23bdc516e3ece83d8610b4337
+=======
+>>>>>>> 4145455a512e55d97abc57f2f7f9dba6f545ab55

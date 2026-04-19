@@ -1,22 +1,33 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from typing import Optional
+from fastapi import APIRouter
 
 router = APIRouter()
 
-class LabRequest(BaseModel):
-    test_name: str
-    value: float
-    sex: Optional[str] = None
-    age: Optional[int] = None
+LAB_REFERENCE = {
+    "hemoglobin": {"min": 12, "max": 17, "unit": "g/dL"},
+    "glucose": {"min": 70, "max": 100, "unit": "mg/dL"}
+}
+
 
 @router.post("/analyze/lab")
-def analyze_lab(request: LabRequest):
-    if request.value < 0:
-        raise HTTPException(status_code=400, detail="Value cannot be negative")
+def analyze_lab(req: dict):
+    name = req.get("test_name", "").lower()
+    value = req.get("value", 0)
+
+    if name not in LAB_REFERENCE:
+        return {"error": "test not found"}
+
+    ref = LAB_REFERENCE[name]
+
+    if value < ref["min"]:
+        status = "low"
+    elif value > ref["max"]:
+        status = "high"
+    else:
+        status = "normal"
+
     return {
-        "result": {"test": request.test_name, "value": request.value, "status": "pending"},
-        "confidence": 0.0,
-        "explanation": "Lab analyzer not yet connected",
-        "disclaimer": "This is not a substitute for professional medical advice."
+        "test": name,
+        "value": value,
+        "status": status,
+        "normal_range": f"{ref['min']} - {ref['max']} {ref['unit']}"
     }
