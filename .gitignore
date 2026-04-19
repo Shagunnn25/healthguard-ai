@@ -21,6 +21,15 @@ data/cleaned/*.jsonl
 *.csv
 *.jsonl
 *.parquet
+data/raw/
+data/cleaned/
+*.csv
+*.jsonl
+*.json
+*.index
+*.pt
+*.pth
+*.bin
 
 # Model weights (too large)
 models/saved_weights/
