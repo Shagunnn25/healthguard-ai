@@ -1,121 +1,45 @@
 import json
 from config.config import CLEANED_LAB
 
-LAB_REFERENCE = {
-    "hemoglobin": {
-        "unit": "g/dL",
-        "male":    {"low": 13.5, "high": 17.5},
-        "female":  {"low": 12.0, "high": 15.5},
-        "general": {"low": 12.0, "high": 17.5},
-        "critical_low": 7.0,
-        "critical_high": 20.0,
-        "description": "Protein in red blood cells that carries oxygen"
-    },
-    "glucose_fasting": {
-        "unit": "mg/dL",
-        "general": {"low": 70, "high": 100},
-        "critical_low": 40,
-        "critical_high": 500,
-        "description": "Blood sugar measured after 8 hours of fasting"
-    },
-    "hba1c": {
-        "unit": "%",
-        "general": {"low": 0, "high": 5.7},
-        "description": "3-month average blood sugar level"
-    },
-    "creatinine": {
-        "unit": "mg/dL",
-        "male":    {"low": 0.7, "high": 1.3},
-        "female":  {"low": 0.5, "high": 1.1},
-        "general": {"low": 0.5, "high": 1.3},
-        "description": "Kidney function marker"
-    },
-    "wbc": {
-        "unit": "10^3/uL",
-        "general": {"low": 4.5, "high": 11.0},
-        "critical_low": 2.0,
-        "critical_high": 30.0,
-        "description": "White blood cells — immune system indicator"
-    },
-    "platelets": {
-        "unit": "10^3/uL",
-        "general": {"low": 150, "high": 400},
-        "critical_low": 50,
-        "critical_high": 1000,
-        "description": "Cells involved in blood clotting"
-    },
-    "sodium": {
-        "unit": "mEq/L",
-        "general": {"low": 136, "high": 145},
-        "critical_low": 120,
-        "critical_high": 160,
-        "description": "Electrolyte controlling fluid balance"
-    },
-    "potassium": {
-        "unit": "mEq/L",
-        "general": {"low": 3.5, "high": 5.0},
-        "critical_low": 2.5,
-        "critical_high": 6.5,
-        "description": "Electrolyte vital for heart and muscle function"
-    },
-    "tsh": {
-        "unit": "mIU/L",
-        "general": {"low": 0.4, "high": 4.0},
-        "description": "Thyroid stimulating hormone"
-    },
-    "total_cholesterol": {
-        "unit": "mg/dL",
-        "general": {"low": 0, "high": 200},
-        "description": "Total blood cholesterol level"
-    },
-    "ldl": {
-        "unit": "mg/dL",
-        "general": {"low": 0, "high": 100},
-        "description": "Bad cholesterol"
-    },
-    "hdl": {
-        "unit": "mg/dL",
-        "male":    {"low": 40, "high": 999},
-        "female":  {"low": 50, "high": 999},
-        "general": {"low": 40, "high": 999},
-        "description": "Good cholesterol — higher is better"
-    },
-    "alt": {
-        "unit": "U/L",
-        "general": {"low": 7, "high": 56},
-        "description": "Liver enzyme"
-    },
-    "ast": {
-        "unit": "U/L",
-        "general": {"low": 10, "high": 40},
-        "description": "Liver enzyme"
-    },
-    "bun": {
-        "unit": "mg/dL",
-        "general": {"low": 7, "high": 20},
-        "description": "Kidney function marker"
-    },
-    "calcium": {
-        "unit": "mg/dL",
-        "general": {"low": 8.5, "high": 10.5},
-        "critical_low": 6.0,
-        "critical_high": 13.0,
-        "description": "Mineral for bones and muscles"
-    },
-    "total_bilirubin": {
-        "unit": "mg/dL",
-        "general": {"low": 0.1, "high": 1.2},
-        "description": "Liver function indicator"
-    },
-    "triglycerides": {
-        "unit": "mg/dL",
-        "general": {"low": 0, "high": 150},
-        "description": "Blood fats"
-    }
+lab_reference = {
+    "hemoglobin": {"min": 12.0, "max": 17.5, "unit": "g/dL",
+        "low": "Anemia possible", "high": "Polycythemia possible"},
+    "hematocrit": {"min": 36.0, "max": 52.0, "unit": "%",
+        "low": "Anemia possible", "high": "Dehydration or polycythemia"},
+    "wbc": {"min": 4.5, "max": 11.0, "unit": "10^3/uL",
+        "low": "Leukopenia - infection risk", "high": "Leukocytosis - infection or inflammation"},
+    "platelets": {"min": 150.0, "max": 400.0, "unit": "10^3/uL",
+        "low": "Thrombocytopenia - bleeding risk", "high": "Thrombocytosis"},
+    "glucose": {"min": 70.0, "max": 100.0, "unit": "mg/dL",
+        "low": "Hypoglycemia", "high": "Hyperglycemia or diabetes"},
+    "sodium": {"min": 136.0, "max": 145.0, "unit": "mEq/L",
+        "low": "Hyponatremia", "high": "Hypernatremia"},
+    "potassium": {"min": 3.5, "max": 5.0, "unit": "mEq/L",
+        "low": "Hypokalemia - muscle weakness", "high": "Hyperkalemia - cardiac risk"},
+    "creatinine": {"min": 0.6, "max": 1.2, "unit": "mg/dL",
+        "low": "Low muscle mass", "high": "Kidney dysfunction"},
+    "bun": {"min": 7.0, "max": 20.0, "unit": "mg/dL",
+        "low": "Malnutrition or liver disease", "high": "Kidney disease or dehydration"},
+    "alt": {"min": 7.0, "max": 56.0, "unit": "U/L",
+        "low": "Normal", "high": "Liver damage or disease"},
+    "ast": {"min": 10.0, "max": 40.0, "unit": "U/L",
+        "low": "Normal", "high": "Liver or heart damage"},
+    "total_cholesterol": {"min": 0.0, "max": 200.0, "unit": "mg/dL",
+        "low": "Normal", "high": "High cardiovascular risk"},
+    "hdl": {"min": 40.0, "max": 999.0, "unit": "mg/dL",
+        "low": "Low HDL - cardiovascular risk", "high": "Normal"},
+    "ldl": {"min": 0.0, "max": 100.0, "unit": "mg/dL",
+        "low": "Normal", "high": "High cardiovascular risk"},
+    "tsh": {"min": 0.4, "max": 4.0, "unit": "mIU/L",
+        "low": "Hyperthyroidism possible", "high": "Hypothyroidism possible"},
+    "calcium": {"min": 8.5, "max": 10.5, "unit": "mg/dL",
+        "low": "Hypocalcemia", "high": "Hypercalcemia"},
+    "hba1c": {"min": 0.0, "max": 5.7, "unit": "%",
+        "low": "Normal", "high": "Diabetes or prediabetes"},
 }
 
-out_path = CLEANED_LAB / "lab_reference_ranges.json"
-with open(out_path, "w") as f:
-    json.dump(LAB_REFERENCE, f, indent=2)
+CLEANED_LAB.mkdir(parents=True, exist_ok=True)
+with open(CLEANED_LAB / 'lab_reference.json', 'w') as f:
+    json.dump(lab_reference, f, indent=2)
 
-print(f"✅ Done! Saved {len(LAB_REFERENCE)} lab tests to {out_path}")
+print(f"✅ Done! {len(lab_reference)} lab tests saved.")
