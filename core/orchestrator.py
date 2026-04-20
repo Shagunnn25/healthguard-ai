@@ -13,11 +13,9 @@ class HealthOrchestrator:
         print("Loading HealthGuard AI orchestrator...")
         self.llm = OllamaClient()
 
-        # Check Ollama is running
         if not self.llm.is_running():
             print("WARNING: Ollama not running. Start it with: ollama serve")
 
-        # Load all models
         print("Loading Disease Predictor...")
         self.disease_model = DiseasePredictorModel()
         self.disease_model.load()
@@ -33,11 +31,9 @@ class HealthOrchestrator:
         print("All modules loaded.")
 
     def handle(self, user_message: str) -> dict:
-        # Step 1 — extract intent using LLM
         intent = self.llm.extract_intent(user_message)
         module = intent.get("module", "general")
 
-        # Step 2 — route to correct model
         if module == "disease_predictor":
             symptoms = intent.get("symptoms", [])
             symptoms_text = ", ".join(symptoms) if symptoms else user_message
@@ -55,10 +51,7 @@ class HealthOrchestrator:
                     "confidence":  model_output.confidence
                 }
             else:
-                response = self.llm.chat(
-                    f"User has these symptoms: {user_message}. "
-                    f"Give a general response but say the prediction model is still loading."
-                )
+                response = self.llm.chat(user_message)
                 return {
                     "response":    response,
                     "module_used": "General Assistant (model loading)",
@@ -75,7 +68,6 @@ class HealthOrchestrator:
                     "sex":       intent.get("lab_sex")
                 }
             )
-
             if self.lab_model.is_ready:
                 model_output = self.lab_model.safe_predict(model_input)
                 response     = self.llm.format_lab_result(
@@ -91,7 +83,7 @@ class HealthOrchestrator:
                 response = self.llm.chat(user_message)
                 return {
                     "response":    response,
-                    "module_used": "General Assistant (model loading)",
+                    "module_used": "General Assistant",
                     "raw_result":  {},
                     "confidence":  0.0
                 }
@@ -119,7 +111,6 @@ class HealthOrchestrator:
                 }
 
         else:
-            # General conversation — LLM handles directly
             response = self.llm.chat(user_message)
             return {
                 "response":    response,
@@ -133,8 +124,8 @@ class HealthOrchestrator:
 
     def get_module_status(self) -> dict:
         return {
-            "ollama_llm":       "running" if self.llm.is_running() else "not running",
-            "disease_predictor": "ready" if self.disease_model.is_ready else "not loaded",
-            "lab_analyzer":      "ready" if self.lab_model.is_ready else "not loaded",
-            "qa_engine":         "ready" if self.qa_model.is_ready else "not loaded"
+            "ollama_llm":        "running" if self.llm.is_running() else "not running",
+            "disease_predictor": "ready"   if self.disease_model.is_ready else "not loaded",
+            "lab_analyzer":      "ready"   if self.lab_model.is_ready    else "not loaded",
+            "qa_engine":         "ready"   if self.qa_model.is_ready     else "not loaded"
         }

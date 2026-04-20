@@ -1,6 +1,7 @@
+# models/qa_engine/model.py
+
 import json
 import numpy as np
-from pathlib import Path
 from models.base_model import BaseHealthModel, ModelInput, ModelOutput
 from config.config import CLEANED_QA, EMBEDDING_MODEL, TOP_K_RESULTS
 
@@ -9,7 +10,7 @@ class QAEngineModel(BaseHealthModel):
 
     def __init__(self):
         super().__init__()
-        self.index = None
+        self.index   = None
         self.records = []
         self.embedder = None
 
@@ -18,11 +19,11 @@ class QAEngineModel(BaseHealthModel):
             import faiss
             from sentence_transformers import SentenceTransformer
 
-            index_path = CLEANED_QA / "qa_faiss.index"
+            index_path   = CLEANED_QA / "qa_faiss.index"
             records_path = CLEANED_QA / "qa_records.jsonl"
 
             if not index_path.exists() or not records_path.exists():
-                print("FAISS index not found — run data cleaning + indexing first")
+                print("FAISS index not found — run build_faiss_index.py first")
                 return
 
             self.index = faiss.read_index(str(index_path))
@@ -39,7 +40,9 @@ class QAEngineModel(BaseHealthModel):
             print(f"QA engine load failed: {e}")
 
     def predict(self, input: ModelInput) -> ModelOutput:
-        query_vec = self.embedder.encode([input.text], normalize_embeddings=True)
+        query_vec = self.embedder.encode(
+            [input.text], normalize_embeddings=True
+        )
         distances, indices = self.index.search(
             np.array(query_vec).astype("float32"), TOP_K_RESULTS
         )
@@ -56,15 +59,15 @@ class QAEngineModel(BaseHealthModel):
                 explanation="No relevant answer found in knowledge base"
             )
 
-        best = retrieved[0]
-        answer = best.get("answer", "No answer available")
+        best    = retrieved[0]
+        answer  = best.get("answer", "No answer available")
         sources = [r.get("source", "medical_kb") for r in retrieved]
 
         return ModelOutput(
             result={
-                "question": input.text,
+                "question":        input.text,
                 "retrieved_chunks": len(retrieved),
-                "sources_used": sources
+                "sources_used":    sources
             },
             confidence=round(float(1 - distances[0][0]), 3),
             explanation=answer,

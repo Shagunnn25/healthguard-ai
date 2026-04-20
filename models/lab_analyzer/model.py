@@ -1,3 +1,5 @@
+# models/lab_analyzer/model.py
+
 import json
 from models.base_model import BaseHealthModel, ModelInput, ModelOutput
 from config.config import CLEANED_LAB
@@ -38,12 +40,12 @@ class LabAnalyzerModel(BaseHealthModel):
         else:
             range_ = ref.get("general", {})
 
-        low  = range_.get("low",  float("-inf"))
-        high = range_.get("high", float("inf"))
+        low       = range_.get("low",  float("-inf"))
+        high      = range_.get("high", float("inf"))
         crit_low  = ref.get("critical_low",  float("-inf"))
         crit_high = ref.get("critical_high", float("inf"))
-        unit = ref.get("unit", "")
-        desc = ref.get("description", "")
+        unit      = ref.get("unit", "")
+        desc      = ref.get("description", "")
 
         try:
             val = float(value)
@@ -55,33 +57,33 @@ class LabAnalyzerModel(BaseHealthModel):
             )
 
         if val <= crit_low:
-            status = "CRITICALLY LOW"
+            status      = "CRITICALLY LOW"
             explanation = f"{test} is critically low ({val} {unit}). Seek immediate medical attention."
-            confidence = 0.99
+            confidence  = 0.99
         elif val >= crit_high:
-            status = "CRITICALLY HIGH"
+            status      = "CRITICALLY HIGH"
             explanation = f"{test} is critically high ({val} {unit}). Seek immediate medical attention."
-            confidence = 0.99
+            confidence  = 0.99
         elif val < low:
-            status = "LOW"
+            status      = "LOW"
             explanation = f"{test} is below normal range ({low}–{high} {unit}). {desc}"
-            confidence = 0.95
+            confidence  = 0.95
         elif val > high:
-            status = "HIGH"
+            status      = "HIGH"
             explanation = f"{test} is above normal range ({low}–{high} {unit}). {desc}"
-            confidence = 0.95
+            confidence  = 0.95
         else:
-            status = "NORMAL"
+            status      = "NORMAL"
             explanation = f"{test} is within normal range ({low}–{high} {unit}). {desc}"
-            confidence = 0.99
+            confidence  = 0.99
 
         return ModelOutput(
             result={
-                "test": test,
-                "value": val,
-                "status": status,
+                "test":         test,
+                "value":        val,
+                "status":       status,
                 "normal_range": f"{low}–{high}",
-                "unit": unit
+                "unit":         unit
             },
             confidence=confidence,
             explanation=explanation,

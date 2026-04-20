@@ -3,26 +3,21 @@
 import requests
 import json
 
-OLLAMA_URL  = "http://localhost:11434/api/chat"
-MODEL_NAME  = "mistral"
+OLLAMA_URL = "http://localhost:11434/api/chat"
+MODEL_NAME = "mistral"
 
 SYSTEM_PROMPT = """
-You are HealthGuard AI, an intelligent medical assistant built by a team of students.
+You are HealthGuard AI, an intelligent medical assistant.
 You help users with:
 1. Disease prediction from symptoms
 2. Lab report interpretation
 3. General medical Q&A
 
-Your job is to:
-- Understand what the user wants in natural language
-- Extract structured data like symptoms, lab values, or questions
-- Present model results in a warm, clear, human-friendly way
-- Always remind users to consult a real doctor
-
 Rules:
 - Never diagnose definitively
 - Always say "may indicate" or "could suggest"
 - Keep responses clear and easy to understand
+- Always remind users to consult a real doctor
 - Be empathetic and supportive
 """
 
@@ -37,7 +32,7 @@ class OllamaClient:
 
     def is_running(self) -> bool:
         try:
-            res = requests.get("http://localhost:11434", timeout=3)
+            requests.get("http://localhost:11434", timeout=3)
             return True
         except:
             return False
