@@ -1,0 +1,322 @@
+/* RESET */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background: radial-gradient(circle at top, #0f172a, #020617);
+  color: white;
+  overflow-x: hidden;
+}
+
+/* NAVBAR */
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding: 18px 40px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+
+  z-index: 100;
+}
+
+.logo {
+  cursor: pointer;
+  font-size: 1.5rem;
+  font-weight: 600;
+
+  background: linear-gradient(90deg, #00c6ff, #ffd700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav-btn {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+
+  background: linear-gradient(135deg, #00c6ff, #ffd700);
+  color: black;
+
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.nav-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 20px rgba(0, 200, 255, 0.6);
+}
+
+/* HOME */
+.home-container {
+  height: calc(100vh - 80px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.hero {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  padding: 60px;
+  border-radius: 25px;
+
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(20px);
+
+  box-shadow: 0 0 80px rgba(0,150,255,0.2);
+}
+
+.title {
+  font-size: 3.2rem;
+  font-weight: 700;
+
+  background: linear-gradient(90deg, #00c6ff, #ffd700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  margin-top: 12px;
+  font-size: 1.2rem;
+  opacity: 0.85;
+}
+
+.start-btn {
+  margin-top: 30px;
+  padding: 14px 35px;
+  font-size: 16px;
+
+  border-radius: 12px;
+  border: none;
+
+  background: linear-gradient(135deg, #00c6ff, #ffd700);
+  color: black;
+
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.start-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 30px rgba(0, 200, 255, 0.6);
+}
+
+/* DASHBOARD */
+.dashboard {
+  padding-top: 120px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
+}
+
+.dashboard-title {
+  font-size: 2.8rem;
+  margin-bottom: 50px;
+
+  background: linear-gradient(90deg, #00c6ff, #ffd700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 240px));
+  justify-content: center;
+  gap: 35px;
+}
+
+.dashboard-card {
+  height: 200px;
+  width: 240px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  border-radius: 20px;
+  cursor: pointer;
+
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(20px);
+
+  border: 1px solid rgba(255,255,255,0.08);
+
+  transition: all 0.3s ease;
+}
+
+.card-icon {
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+}
+
+.dashboard-card h2 {
+  margin: 8px 0;
+  font-size: 1.3rem;
+}
+
+.dashboard-card p {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-12px) scale(1.06);
+
+  box-shadow:
+    0 0 25px rgba(0, 200, 255, 0.5),
+    0 0 60px rgba(255, 215, 0, 0.3);
+
+  border: 1px solid rgba(255, 215, 0, 0.6);
+}
+
+/* PAGES (Disease, OCR, etc.) */
+.page {
+  padding-top: 120px;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.input {
+  padding: 14px;
+  width: 50%;
+  max-width: 500px;
+
+  border-radius: 12px;
+  border: none;
+  outline: none;
+
+  background: rgba(255,255,255,0.08);
+  color: white;
+
+  margin-top: 20px;
+  backdrop-filter: blur(10px);
+}
+
+.result-box {
+  margin: 30px auto;
+  padding: 20px;
+  width: 60%;
+  max-width: 600px;
+
+  border-radius: 15px;
+  background: rgba(255,255,255,0.08);
+
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+/* APP WRAPPER */
+.app {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* THIS FIXES CENTERING */
+.page-container {
+  width: 100%;
+  min-height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding-top: 80px; /* navbar space */
+  box-sizing: border-box;
+}
+.home-container {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+}
+/* 🔥 MASTER CENTER FIX */
+.main-container {
+  height: 100vh;
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding-top: 80px; /* navbar space */
+  box-sizing: border-box;
+}
+/* 🔥 FORCE CENTER EVERYTHING */
+.app {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* FULL SCREEN WRAPPER */
+.center-wrapper {
+  width: 100%;
+  height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding-top: 80px; /* navbar space */
+  box-sizing: border-box;
+}
+
+/* CONTENT BOX */
+.center-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  max-width: 900px; /* 🔥 THIS STOPS LEFT STICKING */
+
+  margin: 0 auto;
+}
+/* 🔥 CLEAN CENTER FIX */
+.app {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* HOME CENTER */
+.home-container {
+  height: calc(100vh - 80px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+}
+
+/* HERO CENTER */
+.hero {
+  margin: 0 auto;
+}

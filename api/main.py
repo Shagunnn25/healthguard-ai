@@ -1,28 +1,11 @@
-<<<<<<< HEAD
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List, Optional
-import json
-import pickle
-import numpy as np
-import pandas as pd
-from pathlib import Path
-from config.config import (
-    APP_NAME, API_VERSION,
-    DISEASE_MODEL_DIR, LAB_MODEL_DIR, QA_MODEL_DIR,
-    CLEANED_SYMPTOM
-)
-
-app = FastAPI(title=APP_NAME, version=API_VERSION)
-=======
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import Optional
 
 from api.routes import disease, lab, qa, ocr
 
 app = FastAPI(title="HealthGuard AI")
->>>>>>> 8a08d43580701720e3982bfc2749087e46ff4c54
 
 app.add_middleware(
     CORSMiddleware,
@@ -31,132 +14,65 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-<<<<<<< HEAD
-# ── Load models ──────────────────────────────────────────
-print("Loading models...")
-
-with open(DISEASE_MODEL_DIR / 'model.pkl', 'rb') as f:
-    disease_model = pickle.load(f)
-with open(DISEASE_MODEL_DIR / 'all_symptoms.json') as f:
-    all_symptoms = json.load(f)
-with open(DISEASE_MODEL_DIR / 'id2disease.json') as f:
-    id2disease = json.load(f)
-
-with open(LAB_MODEL_DIR / 'lab_reference.json') as f:
-    lab_reference = json.load(f)
-
-with open(QA_MODEL_DIR / 'vectorizer.pkl', 'rb') as f:
-    vectorizer = pickle.load(f)
-with open(QA_MODEL_DIR / 'tfidf_matrix.pkl', 'rb') as f:
-    tfidf_matrix = pickle.load(f)
-qa_df = pd.read_csv(QA_MODEL_DIR / 'qa_database.csv')
-
-print("✅ All models loaded!")
-
-# ── Request models ────────────────────────────────────────
-class SymptomRequest(BaseModel):
-    symptoms: List[str]
-    top_k: Optional[int] = 3
-
-class LabRequest(BaseModel):
-    test_name: str
-    value: float
-
-class QARequest(BaseModel):
-    question: str
-    top_k: Optional[int] = 3
-
-# ── Routes ────────────────────────────────────────────────
-@app.get("/")
-def root():
-    return {"message": f"Welcome to {APP_NAME}", "version": API_VERSION}
-
-@app.get("/health")
-def health():
-    return {"status": "healthy"}
-
-@app.get("/symptoms")
-def get_symptoms():
-    return {"symptoms": all_symptoms, "count": len(all_symptoms)}
-
-@app.post("/predict/disease")
-def predict_disease(req: SymptomRequest):
-    vec = np.zeros(len(all_symptoms))
-    matched = []
-    for sym in req.symptoms:
-        sym = sym.lower().strip().replace('_', ' ')
-        if sym in all_symptoms:
-            vec[all_symptoms.index(sym)] = 1
-            matched.append(sym)
-    if not matched:
-        raise HTTPException(status_code=400, detail="No recognized symptoms found")
-    proba = disease_model.predict_proba([vec])[0]
-    top_indices = np.argsort(proba)[::-1][:req.top_k]
-    results = []
-    for idx in top_indices:
-        if proba[idx] > 0.01:
-            results.append({
-                "disease": id2disease[str(idx)],
-                "confidence": round(float(proba[idx]), 4)
-            })
-    return {"matched_symptoms": matched, "predictions": results}
-
-@app.post("/analyze/lab")
-def analyze_lab(req: LabRequest):
-    name = req.test_name.lower().strip()
-    if name not in lab_reference:
-        raise HTTPException(status_code=404, detail=f"Test '{name}' not found")
-    ref = lab_reference[name]
-    if req.value < ref["min"]:
-        status = "low"
-        interpretation = ref["low"]
-    elif req.value > ref["max"]:
-        status = "high"
-        interpretation = ref["high"]
-    else:
-        status = "normal"
-        interpretation = "Within normal range"
-    return {
-        "test": name,
-        "value": req.value,
-        "unit": ref["unit"],
-        "normal_range": f"{ref['min']} - {ref['max']}",
-        "status": status,
-        "interpretation": interpretation
-    }
-
-@app.post("/qa")
-def answer_question(req: QARequest):
-    from sklearn.metrics.pairwise import cosine_similarity
-    query_vec = vectorizer.transform([req.question])
-    scores = cosine_similarity(query_vec, tfidf_matrix).flatten()
-    top_indices = np.argsort(scores)[::-1][:req.top_k]
-    results = []
-    for idx in top_indices:
-        if scores[idx] > 0.01:
-            results.append({
-                "question": qa_df.iloc[idx]["question"],
-                "answer": qa_df.iloc[idx]["answer"],
-                "score": round(float(scores[idx]), 4)
-            })
-    if not results:
-        raise HTTPException(status_code=404, detail="No relevant answer found")
-    return {"query": req.question, "results": results}
-
-@app.get("/lab/tests")
-def get_lab_tests():
-    return {"tests": list(lab_reference.keys()), "count": len(lab_reference)}
-=======
 app.include_router(disease.router)
 app.include_router(lab.router)
 app.include_router(qa.router)
 app.include_router(ocr.router)
 
+# ── Chat endpoint ─────────────────────────────────
+class ChatRequest(BaseModel):
+    message: str
+
 @app.get("/")
 def root():
-    return {"status": "running"}
+    return {"status": "running", "message": "HealthGuard AI is live"}
 
 @app.get("/health")
 def health():
+    return {
+        "status": "ok",
+        "modules": {
+            "disease_predictor": "ready",
+            "lab_analyzer":      "ready",
+            "medical_qa":        "ready",
+            "ocr":               "ready"
+        }
+    }
+
+@app.post("/reset")
+def reset():
     return {"status": "ok"}
->>>>>>> 8a08d43580701720e3982bfc2749087e46ff4c54
+
+@app.post("/chat")
+def chat(req: ChatRequest):
+    msg = req.message.lower()
+
+    # Route to disease predictor
+    if any(w in msg for w in ["fever","pain","headache","cough","nausea","fatigue","symptom"]):
+        return {
+            "response":     f"I can see you're describing symptoms. Please use the Disease Predictor module for a detailed analysis of: '{req.message}'",
+            "module_used":  "Disease Predictor",
+            "confidence":   0.85,
+            "raw_result":   {},
+            "disclaimer":   "Not a substitute for professional medical advice."
+        }
+
+    # Route to lab analyzer
+    elif any(w in msg for w in ["glucose","hemoglobin","cholesterol","hba1c","lab","test","report","mg/dl","g/dl"]):
+        return {
+            "response":     f"This looks like a lab value query. Please use the Lab Analyzer module for: '{req.message}'",
+            "module_used":  "Lab Analyzer",
+            "confidence":   0.80,
+            "raw_result":   {},
+            "disclaimer":   "Not a substitute for professional medical advice."
+        }
+
+    # General medical Q&A
+    else:
+        return {
+            "response":     f"Great question! For '{req.message}' — please use the Medical Q&A module for a detailed answer from our knowledge base.",
+            "module_used":  "Medical Q&A",
+            "confidence":   0.75,
+            "raw_result":   {},
+            "disclaimer":   "Not a substitute for professional medical advice."
+        }
