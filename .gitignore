@@ -16,19 +16,8 @@ env/
 
 # Data files (too large for GitHub)
 data/raw/
-data/cleaned/*.csv
-data/cleaned/*.jsonl
-*.csv
-*.jsonl
-*.parquet
+data/cleaned/
 data/
-*.index
-*.pt
-*.pth
-*.csv
-*.jsonl
-*.json
-*.parquet
 
 # Model weights (too large)
 models/saved_weights/
@@ -36,6 +25,7 @@ models/saved_weights/
 *.pth
 *.bin
 *.onnx
+*.index
 
 # Jupyter
 .ipynb_checkpoints/
@@ -55,52 +45,7 @@ Thumbs.db
 # Logs
 logs/
 *.log
-```
 
----
-
-**Create `requirements.txt`:**
-
-In VS Code, right-click the root folder → New File → name it `requirements.txt`. Paste:
-```
-# Core
-pandas==2.1.0
-numpy==1.24.0
-scikit-learn==1.3.0
-tqdm==4.66.0
-
-# NLP & ML
-torch==2.1.0
-transformers==4.35.0
-sentence-transformers==2.2.2
-datasets==2.14.0
-tokenizers==0.14.0
-
-# Vector DB
-faiss-cpu==1.7.4
-chromadb==0.4.15
-
-# API
-fastapi==0.104.0
-uvicorn==0.24.0
-pydantic==2.4.0
-python-multipart==0.0.6
-
-# OCR
-Pillow==10.0.0
-pytesseract==0.3.10
-easyocr==1.7.0
-
-# Utilities
-python-dotenv==1.0.0
-loguru==0.7.2
-pytest==7.4.0
-httpx==0.25.0
-
-# Notebooks
-jupyter==1.0.0
-matplotlib==3.8.0
-seaborn==0.13.0
-
-# Experiment tracking
-mlflow==2.7.0
+node_modules/
+hg-frontend/node_modules/
+.env
