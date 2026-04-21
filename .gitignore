@@ -45,3 +45,7 @@ Thumbs.db
 # Logs
 logs/
 *.log
+
+node_modules/
+hg-frontend/node_modules/
+.env
