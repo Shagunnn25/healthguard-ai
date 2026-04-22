@@ -166,9 +166,9 @@ HealthGuard AI is for informational purposes only. It is **not a substitute for 
 
 ## 👩‍💻 Built by
 
-Chahak Porwal
-Mumal Singh
-Riya Sirohi
+Chahak Porwal,
+Mumal Singh,
+Riya Sirohi,
 Shagun Mogha
 
 — HealthGuard AI Project
