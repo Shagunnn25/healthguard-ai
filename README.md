@@ -69,15 +69,23 @@ The platform is designed with a strong focus on:
 
 ## 🧠 BioBERT Model Artifacts
 
-The current BioBERT loader expects a complete Hugging Face model directory at:
+The preferred BioBERT format is a complete Hugging Face model directory at:
 
 ```text
 models/saved_weights/disease_predictor/
 ```
 
-That directory must contain the model configuration and weights, tokenizer files, and the exact `disease2id.json` mapping used during training. The mapping is stored with the checkpoint so inference cannot accidentally interpret output indexes using a different dataset mapping.
+It contains the model configuration and weights, tokenizer files, and the exact `disease2id.json` mapping used during training.
 
-The older Google Drive `disease_predictor.pt` file is a legacy state-dict checkpoint. It does not include the colocated label metadata required by the current loader, so the current code does **not** load that file directly. Do not rename or copy it into the new model directory; retrain using the script below to create a matched artifact set.
+The existing Google Drive `disease_predictor.pt` state-dict checkpoint is also supported as a legacy format. Download it and place it at:
+
+```text
+models/saved_weights/disease_predictor.pt
+```
+
+For this legacy checkpoint, the loader uses the tracked `models/disease_predictor/disease2id.json` mapping (41 classes) and strict state-dict loading. The classifier tensor dimensions must match this mapping; otherwise, loading fails closed and the model remains unavailable. The mapping is alphabetically generated from the same 41-disease source dataset represented in the committed training notebook.
+
+To regenerate a self-contained checkpoint and mapping, follow the training steps below.
 
 ---
 
