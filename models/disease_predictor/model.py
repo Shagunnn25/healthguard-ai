@@ -8,7 +8,6 @@ import json
 from pathlib import Path
 
 import torch
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 from models.base_model import BaseHealthModel, ModelInput, ModelOutput
 from config.config import BIOBERT_MODEL, SAVED_WEIGHTS_DIR
@@ -40,6 +39,9 @@ class DiseasePredictorModel(BaseHealthModel):
             return
 
         try:
+            # Import Transformers only when a real checkpoint is being loaded.
+            from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
             with mapping_path.open(encoding="utf-8") as file:
                 raw_mapping = json.load(file)
 
