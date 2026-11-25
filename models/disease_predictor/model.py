@@ -39,9 +39,6 @@ class DiseasePredictorModel(BaseHealthModel):
             return
 
         try:
-            # Import Transformers only when a real checkpoint is being loaded.
-            from transformers import AutoModelForSequenceClassification, AutoTokenizer
-
             with mapping_path.open(encoding="utf-8") as file:
                 raw_mapping = json.load(file)
 
@@ -68,6 +65,9 @@ class DiseasePredictorModel(BaseHealthModel):
                     "Checkpoint label count does not match disease2id.json "
                     f"({configured_labels} != {self.num_labels}). Retrain the model."
                 )
+
+            # Import Transformers only after local metadata has passed validation.
+            from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
             tokenizer = AutoTokenizer.from_pretrained(
                 str(self.artifact_dir), local_files_only=True
