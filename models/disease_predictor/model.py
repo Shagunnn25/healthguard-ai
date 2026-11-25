@@ -1,16 +1,11 @@
-"""BioBERT disease classifier with checkpoint-bound label metadata.
-
-The classifier label mapping is stored beside the trained checkpoint. This prevents
-an inference-time dataset mapping from silently changing the meaning or size of
-the classifier head.
-"""
+"""BioBERT disease classifier with checkpoint-bound label metadata."""
 import json
 from pathlib import Path
 
 import torch
 
 from models.base_model import BaseHealthModel, ModelInput, ModelOutput
-from config.config import BIOBERT_MODEL, SAVED_WEIGHTS_DIR
+from config.config import BIOBERT_MODEL, DISEASE_MODEL_DIR, SAVED_WEIGHTS_DIR
 
 
 class DiseasePredictorModel(BaseHealthModel):
@@ -23,67 +18,143 @@ class DiseasePredictorModel(BaseHealthModel):
 
     @property
     def artifact_dir(self) -> Path:
+        """Preferred Hugging Face save_pretrained() artifact directory."""
         return SAVED_WEIGHTS_DIR / "disease_predictor"
 
-    def load(self):
-        """Load a Hugging Face model directory and its matching label mapping."""
-        self.is_ready = False
+    @property
+    def legacy_checkpoint_path(self) -> Path:
+        """Pre-existing state-dict checkpoint downloaded from the project README."""
+        return SAVED_WEIGHTS_DIR / "disease_predictor.pt"
+
+    @property
+    def legacy_mapping_path(self) -> Path:
+        """Tracked 41-class mapping used by the original BioBERT notebook."""
+        return DISEASE_MODEL_DIR / "disease2id.json"
+
+    @staticmethod
+    def _read_label_mapping(path):
+        with Path(path).open(encoding="utf-8") as file:
+            raw_mapping = json.load(file)
+        if not isinstance(raw_mapping, dict) or not raw_mapping:
+            raise ValueError("disease2id.json must be a non-empty JSON object")
+
+        mapping = {str(name): int(label_id) for name, label_id in raw_mapping.items()}
+        ids = sorted(mapping.values())
+        if ids != list(range(len(mapping))):
+            raise ValueError("Disease label IDs must be unique and contiguous from 0")
+        return mapping
+
+    def _set_mapping(self, mapping):
+        self.disease2id = mapping
+        self.num_labels = len(mapping)
+        self.id2disease = {
+            label_id: name for name, label_id in mapping.items()
+        }
+
+    def _load_preferred_artifacts(self):
+        from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
         mapping_path = self.artifact_dir / "disease2id.json"
         config_path = self.artifact_dir / "config.json"
+        mapping = self._read_label_mapping(mapping_path)
 
-        if not mapping_path.is_file() or not config_path.is_file():
-            print(
-                "BioBERT disease artifacts are incomplete. "
-                "Train with scripts/training/train_disease_predictor.py first."
+        with config_path.open(encoding="utf-8") as file:
+            model_config = json.load(file)
+        configured_labels = model_config.get("num_labels")
+        if configured_labels != len(mapping):
+            raise ValueError(
+                "Checkpoint label count does not match disease2id.json "
+                f"({configured_labels} != {len(mapping)}). Retrain the model."
             )
-            return
+
+        tokenizer = AutoTokenizer.from_pretrained(
+            str(self.artifact_dir), local_files_only=True
+        )
+        model = AutoModelForSequenceClassification.from_pretrained(
+            str(self.artifact_dir), local_files_only=True
+        )
+        if model.config.num_labels != len(mapping):
+            raise ValueError(
+                "Loaded classifier head does not match disease2id.json. "
+                "Retrain the model and replace the complete artifact directory."
+            )
+
+        self._set_mapping(mapping)
+        self.tokenizer = tokenizer
+        self.model = model.to(self.device)
+        self.model.eval()
+
+    def _load_legacy_checkpoint(self):
+        """Load the old .pt checkpoint only against its tracked 41-class mapping.
+
+        Strict state-dict loading checks classifier tensor dimensions. If the
+        downloaded checkpoint is not the 41-class notebook checkpoint, loading
+        fails closed instead of guessing the label order.
+        """
+        from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+        mapping = self._read_label_mapping(self.legacy_mapping_path)
+        tokenizer = AutoTokenizer.from_pretrained(BIOBERT_MODEL)
+        model = AutoModelForSequenceClassification.from_pretrained(
+            BIOBERT_MODEL, num_labels=len(mapping)
+        )
 
         try:
-            with mapping_path.open(encoding="utf-8") as file:
-                raw_mapping = json.load(file)
-
-            if not isinstance(raw_mapping, dict) or not raw_mapping:
-                raise ValueError("disease2id.json must be a non-empty JSON object")
-
-            self.disease2id = {
-                str(name): int(label_id) for name, label_id in raw_mapping.items()
-            }
-            ids = sorted(self.disease2id.values())
-            if ids != list(range(len(self.disease2id))):
-                raise ValueError("Disease label IDs must be unique and contiguous from 0")
-
-            self.num_labels = len(self.disease2id)
-            self.id2disease = {
-                label_id: name for name, label_id in self.disease2id.items()
-            }
-
-            with config_path.open(encoding="utf-8") as file:
-                model_config = json.load(file)
-            configured_labels = model_config.get("num_labels")
-            if configured_labels != self.num_labels:
-                raise ValueError(
-                    "Checkpoint label count does not match disease2id.json "
-                    f"({configured_labels} != {self.num_labels}). Retrain the model."
-                )
-
-            # Import Transformers only after local metadata has passed validation.
-            from transformers import AutoModelForSequenceClassification, AutoTokenizer
-
-            tokenizer = AutoTokenizer.from_pretrained(
-                str(self.artifact_dir), local_files_only=True
+            state_dict = torch.load(
+                self.legacy_checkpoint_path,
+                map_location="cpu",
+                weights_only=True,
             )
-            model = AutoModelForSequenceClassification.from_pretrained(
-                str(self.artifact_dir), local_files_only=True
-            )
-            if model.config.num_labels != self.num_labels:
-                raise ValueError(
-                    "Loaded classifier head does not match disease2id.json. "
-                    "Retrain the model and replace the complete artifact directory."
-                )
+        except TypeError as exc:
+            raise RuntimeError(
+                "This PyTorch version does not support safe weights_only loading. "
+                "Upgrade PyTorch before loading the legacy model checkpoint."
+            ) from exc
 
-            self.tokenizer = tokenizer
-            self.model = model.to(self.device)
-            self.model.eval()
+        if isinstance(state_dict, dict) and isinstance(state_dict.get("state_dict"), dict):
+            state_dict = state_dict["state_dict"]
+        if not isinstance(state_dict, dict):
+            raise ValueError("Legacy BioBERT checkpoint is not a state dictionary")
+
+        model.load_state_dict(state_dict, strict=True)
+        if model.config.num_labels != len(mapping):
+            raise ValueError("Legacy BioBERT classifier head does not match its label map")
+
+        self._set_mapping(mapping)
+        self.tokenizer = tokenizer
+        self.model = model.to(self.device)
+        self.model.eval()
+        print(
+            "Loaded legacy BioBERT checkpoint against the tracked "
+            f"{self.num_labels}-class mapping"
+        )
+
+    def load(self):
+        """Prefer self-contained artifacts, then safely try the legacy checkpoint."""
+        self.is_ready = False
+        self.model = None
+        self.tokenizer = None
+        self.disease2id = {}
+        self.id2disease = {}
+        self.num_labels = 0
+
+        mapping_path = self.artifact_dir / "disease2id.json"
+        config_path = self.artifact_dir / "config.json"
+        try:
+            if mapping_path.is_file() and config_path.is_file():
+                self._load_preferred_artifacts()
+            elif (
+                self.legacy_checkpoint_path.is_file()
+                and self.legacy_mapping_path.is_file()
+            ):
+                self._load_legacy_checkpoint()
+            else:
+                print(
+                    "BioBERT disease artifacts are missing. Download the legacy "
+                    "checkpoint or train with scripts/training/train_disease_predictor.py."
+                )
+                return
+
             self.is_ready = True
             print(f"BioBERT disease predictor loaded — {self.num_labels} classes")
         except Exception as exc:
