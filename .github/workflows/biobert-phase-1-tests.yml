@@ -1,0 +1,43 @@
+name: BioBERT Phase 1 Tests
+
+on:
+  push:
+    branches:
+      - bugfix/phase-1-biobert-stability
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "models/disease_predictor/**"
+      - "scripts/training/train_disease_predictor.py"
+      - "tests/unit/test_disease_predictor.py"
+      - "tests/unit/test_disease_training.py"
+      - ".github/workflows/biobert-phase-1-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  disease-predictor-unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy pandas scikit-learn pytest
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Run BioBERT stability tests
+        env:
+          PYTHONPATH: .
+        run: |
+          python -m pytest -q tests/unit/test_disease_predictor.py tests/unit/test_disease_training.py
